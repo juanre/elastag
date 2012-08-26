@@ -60,14 +60,20 @@ no retail without lang
 True
 >>> print el.haskey({'lang': 'en', 'sector': 'construction'})
 True
->>> el.append({'lang': 'en', 'sector': 'construction'}, 'appended')
-['en-construction', 'appended']
+>>> el.append({'lang': 'en', 'sector': 'construction'}, 'en-const-appended')
+['en-construction', 'en-const-appended']
 >>> el[{'lang': 'en', 'sector': 'construction'}]
-['en-construction', 'appended']
+['en-construction', 'en-const-appended']
 >>> el.append({'lang': 'en', 'sector': 'retail'}, 'en-retail')
 ['en-retail']
->>> el.append({'lang': 'en', 'sector': 'retail'}, 'appended')
-['en-retail', 'appended']
+>>> el.append({'lang': 'en', 'sector': 'retail'}, 'en-ret-appended')
+['en-retail', 'en-ret-appended']
+>>> el.all({'lang': 'en'})
+['en', 'en-comp', 'en-consulting', 'en-retail', 'en-ret-appended', 'en-construction', 'en-const-appended', 'en-comp-construction']
+>>> el.all({'lang': 'en', 'sector': 'construction'})
+['en-construction', 'en-const-appended', 'en-comp-construction']
+>>> len(el.all())
+9
 """
 
 import sys
@@ -129,6 +135,21 @@ class ElasConf(dict):
             super(ElasConf, self).__setitem__(config, [val])
             return [val]
 
+    def all(self, key=None):
+        """Returns an array with all the elements in entries that have
+        keys that include key.
+        """
+        if key is None: key = {}
+        config = set(self.__confid(**key))
+        out = []
+        for c in self.keys():
+            if config <= set(c):
+                val = super(ElasConf, self).__getitem__(c)
+                if isinstance(val, list):
+                    out += val
+                else:
+                    out.append(val)
+        return out
 
 def _test():
     import doctest
