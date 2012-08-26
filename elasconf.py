@@ -60,6 +60,14 @@ no retail without lang
 True
 >>> print el.haskey({'lang': 'en', 'sector': 'construction'})
 True
+>>> el.append({'lang': 'en', 'sector': 'construction'}, 'appended')
+['en-construction', 'appended']
+>>> el[{'lang': 'en', 'sector': 'construction'}]
+['en-construction', 'appended']
+>>> el.append({'lang': 'en', 'sector': 'retail'}, 'en-retail')
+['en-retail']
+>>> el.append({'lang': 'en', 'sector': 'retail'}, 'appended')
+['en-retail', 'appended']
 """
 
 import sys
@@ -103,6 +111,23 @@ class ElasConf(dict):
     ## Obsolete, but anyway.
     def haskey(self, key):
         return key in self
+
+    def append(self, key, val):
+        """If key already exists, make sure it is an array and append
+        to it.  If it does not exist, create with an array.
+        """
+        config = self.__confid(**key)
+        if super(ElasConf, self).__contains__(config):
+            prev = super(ElasConf, self).__getitem__(config)
+            if isinstance(prev, list):
+                prev.append(val)
+                return prev
+            else:
+                super(ElasConf, self).__setitem__(config, [prev, val])
+                return [prev, val]
+        else:
+            super(ElasConf, self).__setitem__(config, [val])
+            return [val]
 
 
 def _test():
