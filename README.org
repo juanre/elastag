@@ -4,6 +4,8 @@ A dictionary indexed by a dictionary, in Python.
 
 Store objects associated to configurations defined as sets of key-value pairs.  More restrictive configurations have more key-value pairs.  Retrieve the object or objects for a given query configuration that corresponds to the most restrictive stored configuration that is a subset of the query.
 
+(Sorry for the poor formatting of the example.  Github sort of shows org-mode, but not when you add source.  Take a look at the original file.)
+
 Example:
 
 #+begin_src python

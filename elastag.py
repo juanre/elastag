@@ -1,7 +1,7 @@
 # elastag -- storing and retrieving information according to an
 #             arbitrary number of configuration options.
 #
-# Version 0.1, August 2012
+# Version 0.2, September 2012
 #
 # Copyright (C) 2012 Juan Reyero (http://juanreyero.com).
 #
@@ -84,7 +84,6 @@ True
 9
 """
 
-import sys
 
 class ElasTag(dict):
     @staticmethod
@@ -107,7 +106,6 @@ class ElasTag(dict):
 
     def __getitem__(self, key):
         config = set(self.__confid(**key))
-        #sys.stderr.write(str(self.keys()))
         k = self.__translate_key(key)
         if k is not None:
             return super(ElasTag, self).__getitem__(k)
@@ -148,7 +146,9 @@ class ElasTag(dict):
         """Returns an array with all the elements in entries that have
         keys that include key.
         """
-        if key is None: key = {}
+        if key is None:
+            key = {}
+
         config = set(self.__confid(**key))
         out = []
         for c in self.keys():
@@ -159,6 +159,7 @@ class ElasTag(dict):
                 else:
                     out.append(val)
         return out
+
 
 def _test():
     import doctest
