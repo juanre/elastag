@@ -1,3 +1,3 @@
-((python-mode . ((py-master-file . "elasconf.py")
+((;; python-mode . ((py-master-file . "elastag.py")
  (tags-file-name . "TAGS"))))
 

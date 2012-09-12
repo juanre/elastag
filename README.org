@@ -1,0 +1,64 @@
+
+* ElasTag
+A dictionary indexed by a dictionary, in Python.
+
+Store objects associated to configurations defined as sets of key-value pairs.  More restrictive configurations have more key-value pairs.  Retrieve the object or objects for a given query configuration that corresponds to the most restrictive stored configuration that is a subset of the query.
+
+Example:
+
+#+begin_src python
+  >>> el = ElasTag()
+  >>> el[{'lang': 'es'}] = 'es'
+  >>> el[{'lang': 'en'}] = 'en'
+  >>> el[{'lang': 'en', 'sector': 'construction'}] = 'en-construction'
+  >>> el[{'lang': 'en', 'sector': 'consulting'}] = 'en-consulting'
+  >>> el[{'lang': 'en', 'company': 'comp'}] = 'en-comp'
+  >>> el[{'lang': 'en', 'company': 'comp',
+  ...     'sector': 'construction'}] = 'en-comp-construction'
+  >>> print el[{'lang': 'es'}]
+  es
+  >>> print el[{'lang': 'en', 'sector': 'construction'}]
+  en-construction
+  >>> print el[{'lang': 'en', 'sector': 'construction',
+  ...           'company': 'comp'}]
+  en-comp-construction
+  >>> try:
+  ...     print el[{'lang': 'ca'}]
+  ... except KeyError:
+  ...     print 'no ca'
+  no ca
+  >>> ## lang:en is the most specific configuration defined that is a subset
+  >>> ## of the following query:
+  >>> print el[{'lang': 'en', 'sector': 'retail'}]
+  en
+  >>> try:
+  ...     print el[{'sector': 'retail'}]
+  ... except KeyError:
+  ...     print 'no retail without lang'
+  no retail without lang
+  >>> print {'lang': 'en', 'sector': 'construction'} in el
+  True
+  >>> ## This checks for elastic inclusion, and finds lang:en
+  >>> print {'lang': 'en', 'sector': 'retail'} in el
+  True
+  >>> ## This checks for exact inclusion, and does not find it.
+  >>> print el.haskey({'lang': 'en', 'sector': 'retail'})
+  False
+  >>> print el.haskey({'lang': 'en', 'sector': 'construction'})
+  True
+  >>> el.append({'lang': 'en', 'sector': 'construction'}, 'en-const-appended')
+  ['en-construction', 'en-const-appended']
+  >>> el[{'lang': 'en', 'sector': 'construction'}]
+  ['en-construction', 'en-const-appended']
+  >>> el.append({'lang': 'en', 'sector': 'retail'}, 'en-retail')
+  ['en-retail']
+  >>> el.append({'lang': 'en', 'sector': 'retail'}, 'en-ret-appended')
+  ['en-retail', 'en-ret-appended']
+  >>> el.all({'lang': 'en'})
+  ['en', 'en-comp', 'en-consulting', 'en-retail', 'en-ret-appended',
+   'en-construction', 'en-const-appended', 'en-comp-construction']
+  >>> el.all({'lang': 'en', 'sector': 'construction'})
+  ['en-construction', 'en-const-appended', 'en-comp-construction']
+  >>> len(el.all())
+  9
+#+end_src

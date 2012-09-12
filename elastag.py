@@ -1,4 +1,4 @@
-# elasconf -- storing and retrieving information according to an
+# elastag -- storing and retrieving information according to an
 #             arbitrary number of configuration options.
 #
 # Version 0.1, August 2012
@@ -18,7 +18,7 @@
 # language governing permissions and limitations under the
 # License.
 #
-# Home page: http://juanreyero.com/open/elasconf/
+# Home page: http://juanreyero.com/open/elastag/
 
 """
 Store objects associated to configurations defined as sets of
@@ -29,7 +29,7 @@ subset of the query.
 
 Example:
 
->>> el = ElasConf()
+>>> el = ElasTag()
 >>> el[{'lang': 'es'}] = 'es'
 >>> el[{'lang': 'en'}] = 'en'
 >>> el[{'lang': 'en', 'sector': 'construction'}] = 'en-construction'
@@ -49,6 +49,8 @@ en-comp-construction
 ... except KeyError:
 ...     print 'no ca'
 no ca
+>>> ## lang:en is the most specific configuration defined that is a subset
+>>> ## of the following query:
 >>> print el[{'lang': 'en', 'sector': 'retail'}]
 en
 >>> try:
@@ -58,6 +60,12 @@ en
 no retail without lang
 >>> print {'lang': 'en', 'sector': 'construction'} in el
 True
+>>> ## This checks for elastic inclusion, and finds lang:en
+>>> print {'lang': 'en', 'sector': 'retail'} in el
+True
+>>> ## This checks for exact inclusion, and does not find it.
+>>> print el.haskey({'lang': 'en', 'sector': 'retail'})
+False
 >>> print el.haskey({'lang': 'en', 'sector': 'construction'})
 True
 >>> el.append({'lang': 'en', 'sector': 'construction'}, 'en-const-appended')
@@ -78,7 +86,7 @@ True
 
 import sys
 
-class ElasConf(dict):
+class ElasTag(dict):
     @staticmethod
     def __confid(**kw):
         ## We want them sorted, because the generated confid will be
@@ -102,37 +110,38 @@ class ElasConf(dict):
         #sys.stderr.write(str(self.keys()))
         k = self.__translate_key(key)
         if k is not None:
-            return super(ElasConf, self).__getitem__(k)
+            return super(ElasTag, self).__getitem__(k)
         raise KeyError('%s does not match an existing configuration' %
                        str(key))
 
     def __setitem__(self, key, val):
-        super(ElasConf, self).__setitem__(self.__confid(**key), val)
+        super(ElasTag, self).__setitem__(self.__confid(**key), val)
 
     def __contains__(self, key):
-        if self.__translate_key(key) is not None:
-            return True
-        return False
+        """Checks for elastic match.
+        """
+        return self.__translate_key(key)
 
-    ## Obsolete, but anyway.
     def haskey(self, key):
-        return key in self
+        """Checks for exact match.
+        """
+        return super(ElasTag, self).__contains__(self.__confid(**key))
 
     def append(self, key, val):
         """If key already exists, make sure it is an array and append
         to it.  If it does not exist, create with an array.
         """
         config = self.__confid(**key)
-        if super(ElasConf, self).__contains__(config):
-            prev = super(ElasConf, self).__getitem__(config)
+        if super(ElasTag, self).__contains__(config):
+            prev = super(ElasTag, self).__getitem__(config)
             if isinstance(prev, list):
                 prev.append(val)
                 return prev
             else:
-                super(ElasConf, self).__setitem__(config, [prev, val])
+                super(ElasTag, self).__setitem__(config, [prev, val])
                 return [prev, val]
         else:
-            super(ElasConf, self).__setitem__(config, [val])
+            super(ElasTag, self).__setitem__(config, [val])
             return [val]
 
     def all(self, key=None):
@@ -144,7 +153,7 @@ class ElasConf(dict):
         out = []
         for c in self.keys():
             if config <= set(c):
-                val = super(ElasConf, self).__getitem__(c)
+                val = super(ElasTag, self).__getitem__(c)
                 if isinstance(val, list):
                     out += val
                 else:
