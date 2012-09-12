@@ -1,7 +1,7 @@
 # elastag -- storing and retrieving information according to an
 #             arbitrary number of configuration options.
 #
-# Version 0.2, September 2012
+# Version 0.3, August 2012
 #
 # Copyright (C) 2012 Juan Reyero (http://juanreyero.com).
 #
@@ -18,7 +18,6 @@
 # language governing permissions and limitations under the
 # License.
 #
-# Home page: http://juanreyero.com/open/elastag/
 
 """
 Store objects associated to configurations defined as sets of
@@ -76,8 +75,8 @@ True
 ['en-retail']
 >>> el.append({'lang': 'en', 'sector': 'retail'}, 'en-ret-appended')
 ['en-retail', 'en-ret-appended']
->>> el.all({'lang': 'en'})
-['en', 'en-comp', 'en-consulting', 'en-retail', 'en-ret-appended', 'en-construction', 'en-const-appended', 'en-comp-construction']
+>>> len(el.all({'lang': 'en'}))
+8
 >>> el.all({'lang': 'en', 'sector': 'construction'})
 ['en-construction', 'en-const-appended', 'en-comp-construction']
 >>> len(el.all())
@@ -126,8 +125,16 @@ class ElasTag(dict):
         return super(ElasTag, self).__contains__(self.__confid(**key))
 
     def append(self, key, val):
-        """If key already exists, make sure it is an array and append
-        to it.  If it does not exist, create with an array.
+        """If key already exists, make sure it contains an array and
+        append to it.  If it does not exist, create with an array.
+
+        >>> el = ElasTag()
+        >>> el.append({'lang': 'es'}, 'es1')
+        ['es1']
+        >>> el.append({'lang': 'es'}, 'es1')
+        ['es1', 'es1']
+        >>> el.bag({'lang': 'es'})
+        set(['es1'])
         """
         config = self.__confid(**key)
         if super(ElasTag, self).__contains__(config):
@@ -142,23 +149,66 @@ class ElasTag(dict):
             super(ElasTag, self).__setitem__(config, [val])
             return [val]
 
-    def all(self, key=None):
-        """Returns an array with all the elements in entries that have
-        keys that include key.
+    def add(self, key, val):
+        """If key already exists, make sure it contains a set
+        and add to it.  If it does not exist, create with a set.
+
+        >>> el = ElasTag()
+        >>> el.add({'lang': 'es'}, 'es1')
+        set(['es1'])
+        >>> el.add({'lang': 'es'}, 'es1')
+        set(['es1'])
+        >>> el.add({'lang': 'es'}, 'es2')
+        set(['es2', 'es1'])
+        >>> el.bag({'lang': 'es'})
+        set(['es2', 'es1'])
+        """
+        config = self.__confid(**key)
+        if super(ElasTag, self).__contains__(config):
+            prev = super(ElasTag, self).__getitem__(config)
+            if isinstance(prev, set):
+                prev.add(val)
+                return prev
+            else:
+                super(ElasTag, self).__setitem__(config, set([prev, val]))
+                return set([prev, val])
+        else:
+            super(ElasTag, self).__setitem__(config, set([val]))
+            return set([val])
+
+    def all(self, key=None, as_set=False):
+        """Returns an array or a set with all the elements in entries
+        that have keys that include key.
         """
         if key is None:
             key = {}
 
         config = set(self.__confid(**key))
         out = []
+        if as_set:
+            out = set()
         for c in self.keys():
             if config <= set(c):
                 val = super(ElasTag, self).__getitem__(c)
-                if isinstance(val, list):
-                    out += val
+                if as_set:
+                    if isinstance(val, set):
+                        out |= val
+                    elif isinstance(val, list):
+                        out |= set(val)
+                    else:
+                        out.add(val)
                 else:
-                    out.append(val)
+                    if isinstance(val, list):
+                        out += val
+                    else:
+                        out.append(val)
         return out
+
+    def bag(self, key=None):
+        """Returns a set with all the elements in entries that have
+        keys that include key.
+        """
+        return self.all(key, as_set=True)
 
 
 def _test():
