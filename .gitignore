@@ -1,8 +1,9 @@
 *~
-*.xfasl
 *.pyc
 .emacs-bu/*
 MANIFEST
 build/*
 dist/*
+TAGS
+.ropeproject
 
