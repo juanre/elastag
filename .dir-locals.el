@@ -1,3 +1,2 @@
-((;; python-mode . ((py-master-file . "elastag.py")
- (tags-file-name . "TAGS"))))
-
+((python-mode . (;;(py-master-file . "elastag.py")
+                 (tags-file-name . "TAGS"))))
